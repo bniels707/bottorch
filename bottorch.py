@@ -23,18 +23,17 @@ BINARY_THRESHOLD = torch.tensor([0.5])
 class BotdataNeuralNetwork(nn.Module):
     def __init__(self, botdata_tensor_size, label_tensor_size):
         super(BotdataNeuralNetwork, self).__init__()
-        self.flatten = nn.Flatten()
+
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(botdata_tensor_size, botdata_tensor_size),
-            nn.ReLU(),
             nn.Linear(botdata_tensor_size, botdata_tensor_size // 2),
+            nn.ReLU(),
+            nn.Linear(botdata_tensor_size // 2, botdata_tensor_size // 2),
             nn.ReLU(),
             nn.Linear(botdata_tensor_size // 2, 1),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        x = self.flatten(x)
         logits = self.linear_relu_stack(x)
         return logits
 
