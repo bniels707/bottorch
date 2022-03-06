@@ -30,7 +30,13 @@ class BotDataset(Dataset):
         data_row = self.input_data.iloc[idx]
 
         data = data_row[0:NAME_WINNER_IDX]
-        label = data_row[NAME_WINNER_IDX]
+        winner_name = data_row[NAME_WINNER_IDX]
+
+        #Label is 0 for "Red", 1 for "Blue"
+        if winner_name == data_row[NAME_1_COL_IDX]:
+            label = 0
+        else:
+            label = 1
 
         if self.transform:
             data = self.transform(data)
@@ -66,6 +72,18 @@ def _tensor_transform(name_lambda, weapon_lambda, data):
 
     return tensor_accumulator
 
+def _classifier(value):
+    tensor = torch.zeros(1, dtype=torch.float)
+
+    if value != 0:
+        tensor[0] = 1
+
+    return tensor
+
+def get_classification_lambda():
+    #Return single value "binary" one-hot
+    return Lambda(lambda y: _classifier(y))
+
 def get_botdata_features(botdata_path):
     #Returns bot names, bot weapons, as lists
     botnames = []
@@ -93,12 +111,21 @@ def get_botdata_features(botdata_path):
     return botnames, weapons
 
 def get_botdata_lambdas(botnames, weapons):
-    #Returns a function for converting botnames to a 1D hot, and weapon to a 1D hot
+    #Returns a function for converting botnames to a one-hot, and weapon to a one-hot
     botname_lambda = _get_botname_lambda(botnames)
     weapon_lambda = _get_weapon_lambda(weapons)
 
     return botname_lambda, weapon_lambda
 
 def get_tensor_transform(botname_lambda, weapon_lambda):
-    #Returns a function converting data to a 1D tensor
+    #Returns a function converting data row to a 1D tensor
     return partial(_tensor_transform, botname_lambda, weapon_lambda)
+
+def get_tensor_mapping(botdata_lambda, labels):
+    #Returns a dict, key: 1D hot, value: label
+    mapping = {}
+
+    for label in labels:
+        mapping[botdata_lambda(label)] = label
+
+    return mapping
