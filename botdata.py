@@ -85,30 +85,17 @@ def get_classification_lambda():
     return Lambda(lambda y: _classifier(y))
 
 def get_botdata_features(botdata_path):
-    #Returns bot names, bot weapons, as lists
-    botnames = []
-    weapons = []
+    #Returns dict, key: botname, value: list of weapons
+    features = {}
 
     input_data = pd.read_csv(botdata_path, header=None)
 
     for rowidx in range(0, input_data.shape[0]):
-        #Add both competitor names to the botnames list
-        botnames.append(input_data.iloc[rowidx][NAME_1_COL_IDX])
-        botnames.append(input_data.iloc[rowidx][NAME_2_COL_IDX])
+        #Add both competitor names and weapons list to the dict
+        features[input_data.iloc[rowidx][NAME_1_COL_IDX]] = [input_data.iloc[rowidx][WEAPON_1_1_COL_IDX], input_data.iloc[rowidx][WEAPON_1_2_COL_IDX]]
+        features[input_data.iloc[rowidx][NAME_2_COL_IDX]] = [input_data.iloc[rowidx][WEAPON_2_1_COL_IDX], input_data.iloc[rowidx][WEAPON_2_2_COL_IDX]]
 
-        #Bot 1 weapons
-        weapons.append(input_data.iloc[rowidx][WEAPON_1_1_COL_IDX])
-        weapons.append(input_data.iloc[rowidx][WEAPON_1_2_COL_IDX])
-
-        #Bot 2 weapons
-        weapons.append(input_data.iloc[rowidx][WEAPON_2_1_COL_IDX])
-        weapons.append(input_data.iloc[rowidx][WEAPON_2_2_COL_IDX])
-
-    #Dedupe the lists
-    botnames = list(set(botnames))
-    weapons = list(set(weapons))
-
-    return botnames, weapons
+    return features
 
 def get_botdata_lambdas(botnames, weapons):
     #Returns a function for converting botnames to a one-hot, and weapon to a one-hot

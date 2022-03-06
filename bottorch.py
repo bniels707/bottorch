@@ -132,18 +132,50 @@ def tune(botdataset, training_size, test_size, l1, l2, training_epochs):
 
     return model
 
+def predict(model, botdata_transform, bot_name1, bot_name2, bot_features):
+    #Returns the predicted winner as a name string
+    matchup_tensor = botdata_transform([bot_name1, bot_features[bot_name1][0], bot_features[bot_name1][1], bot_name2, bot_features[bot_name2][0], bot_features[bot_name2][1]])
+
+    with torch.no_grad():
+        pred = model(matchup_tensor)
+
+    #Make predictions binary
+    pred = (pred > BINARY_THRESHOLD).float()
+
+    if pred[0] == 0:
+        return bot_name1
+
+    return bot_name2
+
 def main():
-    bot_names, bot_weapons = botdata.get_botdata_features(DATA_PATH)
+    bot_features = botdata.get_botdata_features(DATA_PATH)
+
+    #Convert the features mapping to lists so we can build vectors from them
+    bot_names = list(bot_features.keys())
+
+    bot_weapons = []
+
+    for bot_name in bot_features.keys():
+        for weapon in bot_features[bot_name]:
+            if weapon not in bot_weapons:
+                bot_weapons.append(weapon)
+
+    #Build the vectors
     botname_lambda, weapon_lambda = botdata.get_botdata_lambdas(bot_names, bot_weapons)
     botdata_transform = botdata.get_tensor_transform(botname_lambda, weapon_lambda)
 
+    #Make a dataset
     botdataset = botdata.BotDataset(DATA_PATH, transform=botdata_transform, target_transform=botdata.get_classification_lambda())
 
+    #Calculate the split sizes
     training_size = int(TRAINING_SPLIT_PERCENTAGE * len(botdataset))
     test_size = len(botdataset) - training_size
 
     #hyper_tune(botdataset, training_size, test_size, 100, 5) #L1: 32, L2: 1332
-    tune(botdataset, training_size, test_size, 32, 1332, 1000)
+    model = tune(botdataset, training_size, test_size, 32, 1332, 100)
+
+    print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
+    print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
 
 if __name__ == "__main__":
     main()
