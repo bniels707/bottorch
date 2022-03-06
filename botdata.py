@@ -1,5 +1,6 @@
 import torch
 
+import numpy as np
 import pandas as pd
 
 from functools import partial
@@ -17,6 +18,7 @@ WEAPON_2_2_COL_IDX = 5 #Bot 2, Weapon 2
 NAME_WINNER_IDX = 6 #Winner bot name
 
 class BotDataset(Dataset):
+    #A dataset, doubled, with the second half having the competitors flipped to avoid biasing the model
     def __init__(self, input_file, transform=None, target_transform=None):
         self.input_data = pd.read_csv(input_file, header=None)
         self.transform = transform
@@ -24,10 +26,19 @@ class BotDataset(Dataset):
 
     def __len__(self):
         #Shape is rows x cols
-        return self.input_data.shape[0]
+        return self.input_data.shape[0] * 2
 
     def __getitem__(self, idx):
-        data_row = self.input_data.iloc[idx]
+        if idx < self.input_data.shape[0]:
+            data_row = self.input_data.iloc[idx]
+        else:
+            #Flip "Red" / "Blue"
+            data_row = self.input_data.iloc[idx - self.input_data.shape[0]]
+
+            red_competitor = data_row[0:NAME_2_COL_IDX]
+            blue_competitor = data_row[NAME_2_COL_IDX:NAME_WINNER_IDX]
+
+            data_row = np.concatenate((blue_competitor, red_competitor, np.array([data_row[NAME_WINNER_IDX]])))
 
         data = data_row[0:NAME_WINNER_IDX]
         winner_name = data_row[NAME_WINNER_IDX]
