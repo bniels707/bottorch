@@ -16,7 +16,7 @@ TRAINING_SPLIT_PERCENTAGE = 0.7
 BATCH_SIZE = 64
 
 #Number of times to do the train / test cycle
-EPOCHS = 5
+EPOCHS = 50
 
 BINARY_THRESHOLD = torch.tensor([0.5])
 
@@ -27,9 +27,9 @@ class BotdataNeuralNetwork(nn.Module):
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(botdata_tensor_size, botdata_tensor_size),
             nn.ReLU(),
-            nn.Linear(botdata_tensor_size, botdata_tensor_size),
+            nn.Linear(botdata_tensor_size, botdata_tensor_size // 2),
             nn.ReLU(),
-            nn.Linear(botdata_tensor_size, 1),
+            nn.Linear(botdata_tensor_size // 2, 1),
             nn.Sigmoid()
         )
 
@@ -84,8 +84,6 @@ def main():
     bot_names, bot_weapons = botdata.get_botdata_features(DATA_PATH)
     botname_lambda, weapon_lambda = botdata.get_botdata_lambdas(bot_names, bot_weapons)
     botdata_transform = botdata.get_tensor_transform(botname_lambda, weapon_lambda)
-
-    botname_tensor_mapping = botdata.get_tensor_mapping(botname_lambda, bot_names)
 
     botdataset = botdata.BotDataset(DATA_PATH, transform=botdata_transform, target_transform=botdata.get_classification_lambda())
 

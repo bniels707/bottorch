@@ -120,12 +120,3 @@ def get_botdata_lambdas(botnames, weapons):
 def get_tensor_transform(botname_lambda, weapon_lambda):
     #Returns a function converting data row to a 1D tensor
     return partial(_tensor_transform, botname_lambda, weapon_lambda)
-
-def get_tensor_mapping(botdata_lambda, labels):
-    #Returns a dict, key: 1D hot, value: label
-    mapping = {}
-
-    for label in labels:
-        mapping[botdata_lambda(label)] = label
-
-    return mapping
