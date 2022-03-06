@@ -56,6 +56,16 @@ class BotDataset(Dataset):
 
         return data, label
 
+def get_competitor_list(input_file):
+    competitor_list = []
+
+    input_data = pd.read_csv(input_file, header=None)
+
+    for data_row in range(0, input_data.shape[0]):
+        competitor_list.append(input_data.iloc[data_row][0])
+
+    return competitor_list
+
 def _get_botname_lambda(botnames):
     #Returns a lambda for projecting robot names as a one-hot tensor
     #https://datascience.stackexchange.com/questions/30215/what-is-one-hot-encoding-in-tensorflow

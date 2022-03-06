@@ -7,6 +7,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 DATA_PATH = 'BotTorch_Data-Training.csv'
+COMPETITORS_PATH = 'BotTorch_Data-S6-Competitors.csv'
 
 DEVICE = "cpu"
 
@@ -149,6 +150,26 @@ def predict(model, botdata_transform, bot_name1, bot_name2, bot_features):
 
     return bot_name2
 
+def predict_rank(model, botdata_transform, bot_features):
+    #Prints the list of competitors ordered by number of wins in a round robin
+    competitor_list = botdata.get_competitor_list(COMPETITORS_PATH)
+
+    win_accumulator = {}
+
+    for competitor in competitor_list:
+        win_accumulator[competitor] = 0
+
+    for competitor1 in competitor_list:
+        for competitor2 in competitor_list:
+            if competitor1 != competitor2:
+                winner = predict(model, botdata_transform, competitor1, competitor2, bot_features)
+
+                win_accumulator[winner] += 1
+
+    #Print sorted by win
+    for idx, competitor in enumerate(sorted(win_accumulator, key=win_accumulator.get, reverse=True)):
+        print(idx + 1, ' - ', competitor, win_accumulator[competitor])
+
 def main():
     bot_features = botdata.get_botdata_features(DATA_PATH)
 
@@ -176,8 +197,10 @@ def main():
     #hyper_tune(botdataset, training_size, test_size, 100, 5) #Best accuracy 62.5%, L1: 2332, L2: 1032
     model = tune(botdataset, training_size, test_size, 2332, 1032, 100)
 
-    print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
-    print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
+    #print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
+    #print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
+
+    predict_rank(model, botdata_transform, bot_features)
 
 if __name__ == "__main__":
     main()
