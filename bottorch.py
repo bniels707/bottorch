@@ -103,7 +103,7 @@ def main():
     print(model)
 
     loss_fn = nn.BCELoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
 
     train_dataloader = DataLoader(training_data, batch_size=BATCH_SIZE, shuffle=True)
     test_dataloader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=True)
