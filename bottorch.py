@@ -21,15 +21,21 @@ EPOCHS = 50
 BINARY_THRESHOLD = torch.tensor([0.5])
 
 class BotdataNeuralNetwork(nn.Module):
-    def __init__(self, botdata_tensor_size, label_tensor_size):
+    def __init__(self, botdata_tensor_size, l1_size=None, l2_size=None):
         super(BotdataNeuralNetwork, self).__init__()
 
+        if l1_size is None:
+            l1_size = botdata_tensor_size // 2
+
+        if l2_size is None:
+            l2_size = l1_size // 2
+
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(botdata_tensor_size, botdata_tensor_size // 2),
+            nn.Linear(botdata_tensor_size, l1_size),
             nn.ReLU(),
-            nn.Linear(botdata_tensor_size // 2, botdata_tensor_size // 2),
+            nn.Linear(l1_size, l2_size),
             nn.ReLU(),
-            nn.Linear(botdata_tensor_size // 2, 1),
+            nn.Linear(l2_size, 1),
             nn.Sigmoid()
         )
 
