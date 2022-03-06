@@ -125,6 +125,8 @@ def hyper_tune(botdataset, training_size, test_size, step_size, training_epochs)
 
             print(f"Tuning step: {current_tuning_step}/{tuning_steps}")
 
+    print(f"Done! Best accuracy {(100*(best_correct / test_size)):>0.1f}%, L1: {best_l1}, L2: {best_l2}")
+
 def tune(botdataset, training_size, test_size, l1, l2, training_epochs):
     test_loss, test_correct, model = train_iteration(botdataset, training_size, test_size, training_epochs, l1, l2)
 
@@ -160,7 +162,7 @@ def main():
             if weapon not in bot_weapons:
                 bot_weapons.append(weapon)
 
-    #Build the vectors
+    #Build the vector transforms
     botname_lambda, weapon_lambda = botdata.get_botdata_lambdas(bot_names, bot_weapons)
     botdata_transform = botdata.get_tensor_transform(botname_lambda, weapon_lambda)
 
@@ -171,8 +173,8 @@ def main():
     training_size = int(TRAINING_SPLIT_PERCENTAGE * len(botdataset))
     test_size = len(botdataset) - training_size
 
-    #hyper_tune(botdataset, training_size, test_size, 100, 5) #L1: 32, L2: 1332
-    model = tune(botdataset, training_size, test_size, 32, 1332, 100)
+    #hyper_tune(botdataset, training_size, test_size, 100, 5) #Best accuracy 62.5%, L1: 2332, L2: 1032
+    model = tune(botdataset, training_size, test_size, 2332, 1032, 100)
 
     print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
     print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
