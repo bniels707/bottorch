@@ -197,10 +197,10 @@ def main():
     #hyper_tune(botdataset, training_size, test_size, 100, 5) #Best accuracy 62.5%, L1: 2332, L2: 1032
     model = tune(botdataset, training_size, test_size, 2332, 1032, 100)
 
-    #print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
-    #print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
+    print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
+    print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
 
-    predict_rank(model, botdata_transform, bot_features)
+    #predict_rank(model, botdata_transform, bot_features)
 
 if __name__ == "__main__":
     main()

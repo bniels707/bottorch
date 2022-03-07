@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[[source]]
+url = "https://download.pytorch.org/whl/nightly/cpu"
+verify_ssl = true
+name = "pytorch"
+
+[packages]
+torch = {version = "*", index = "pytorch"}
+torchvision = {version = "*", index = "pytorch"}
+pandas = "*"
+numpy = "*"
+
+[dev-packages]
+bottorch = {editable = true, path = "."}
+
+[pipenv]
+allow_prereleases = true
