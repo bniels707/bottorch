@@ -10,7 +10,7 @@ setup(
     url="https://github.com/bniels707/bottorch/",
     entry_points={
         "console_scripts": [
-            "bottorch = bottorch.entrypoint:main",
+            "bottorch = bottorch.bottorch:main",
         ]
     },
     python_requires=">=3.7",
