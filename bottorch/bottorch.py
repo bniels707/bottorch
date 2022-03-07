@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-import botdata
 import torch
 
 from torch import nn
 from torch.utils.data import DataLoader
+from bottorch.botdata import BotDataset, get_botdata_features, get_botdata_lambdas, get_competitor_list, get_tensor_transform
 
 DATA_PATH = 'BotTorch_Data-Training.csv'
 COMPETITORS_PATH = 'BotTorch_Data-S6-Competitors.csv'
