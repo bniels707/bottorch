@@ -176,9 +176,9 @@ def main():
     parser.add_argument(
         "action",
         type=str,
-        choices=["hypertune", "tune", "predict"],
+        choices=["hypertune", "tune", "predict", "rank"],
         default="predict",
-        help="the action to perform, hypertune to print tuned L1, L2 model paramters, tune to iteratively tune the model with the given parameters and save to the specified model, predict to make a prediction using the specified model, defaults to predict",
+        help="the action to perform, hypertune to print tuned L1, L2 model paramters, tune to iteratively tune the model with the given parameters and save to the specified model, predict to make a prediction using the specified model, rank uses the model to order competitors based on predicted wins in a round robin, defaults to predict",
     )
 
     parser.add_argument(
@@ -270,10 +270,13 @@ def main():
         model.load_state_dict(torch.load(args.model))
 
         print(predict(model, botdata_transform, args.competitor1, args.competitor2, bot_features))
+    elif args.action == 'rank':
+        model = BotdataNeuralNetwork(botdataset[0][0].shape[0], args.l1, args.l2)
+        model.load_state_dict(torch.load(args.model))
+
+        predict_rank(model, botdata_transform, bot_features)
     else:
         raise RuntimeError('Unrecognized action')
-
-    #predict_rank(model, botdata_transform, bot_features)
 
 if __name__ == "__main__":
     main()
