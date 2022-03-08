@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import torch
 
 from torch import nn
@@ -171,6 +172,34 @@ def predict_rank(model, botdata_transform, bot_features):
         print(idx + 1, ' - ', competitor, win_accumulator[competitor])
 
 def main():
+    parser = argparse.ArgumentParser(
+        description="Crude fighting robot bracketology using machine learning."
+    )
+
+    parser.add_argument(
+        "tuning_action",
+        type=str,
+        nargs='?',
+        choices=["hypertune", "tune"],
+        help="the action to perform, hypertune to print tuned L1, L2 model paramters, tune to iteratively tune the model with the given parameters",
+    )
+
+    parser.add_argument(
+        "--l1",
+        type=int,
+        default=128,
+        help="the size of the first neural network layer",
+    )
+
+    parser.add_argument(
+        "--l2",
+        type=int,
+        default=64,
+        help="the size of the second neural network layer",
+    )
+
+    args = parser.parse_args()
+
     bot_features = get_botdata_features(DATA_PATH)
 
     #Convert the features mapping to lists so we can build vectors from them
@@ -194,11 +223,14 @@ def main():
     training_size = int(TRAINING_SPLIT_PERCENTAGE * len(botdataset))
     test_size = len(botdataset) - training_size
 
-    #hyper_tune(botdataset, training_size, test_size, 100, 5) #Best accuracy 62.5%, L1: 2332, L2: 1032
-    model = tune(botdataset, training_size, test_size, 2332, 1032, 100)
+    if args.tuning_action is not None:
+        if args.tuning_action == 'hypertune':
+            hyper_tune(botdataset, training_size, test_size, 100, 5) #Best accuracy 62.5%, L1: 2332, L2: 1032
+        elif args.tuning_action == 'tune':
+            model = tune(botdataset, training_size, test_size, 2332, 1032, 100)
 
-    print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
-    print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
+    #print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
+    #print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
 
     #predict_rank(model, botdata_transform, bot_features)
 
