@@ -185,6 +185,13 @@ def main():
     )
 
     parser.add_argument(
+        "--epochs",
+        type=int,
+        default=5,
+        help="the number of tuning epochs",
+    )
+
+    parser.add_argument(
         "--l1",
         type=int,
         default=128,
@@ -225,9 +232,9 @@ def main():
 
     if args.tuning_action is not None:
         if args.tuning_action == 'hypertune':
-            hyper_tune(botdataset, training_size, test_size, 100, 5) #Best accuracy 62.5%, L1: 2332, L2: 1032
+            hyper_tune(botdataset, training_size, test_size, 100, args.epochs) #Best accuracy 62.5%, L1: 2332, L2: 1032
         elif args.tuning_action == 'tune':
-            model = tune(botdataset, training_size, test_size, 2332, 1032, 100)
+            model = tune(botdataset, training_size, test_size, 2332, 1032, args.epochs)
 
     #print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
     #print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
