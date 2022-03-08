@@ -241,7 +241,7 @@ def main():
         if args.tuning_action == 'hypertune':
             hyper_tune(botdataset, training_size, test_size, args.step_size, args.epochs) #Best accuracy 62.5%, L1: 2332, L2: 1032
         elif args.tuning_action == 'tune':
-            model = tune(botdataset, training_size, test_size, 2332, 1032, args.epochs)
+            model = tune(botdataset, training_size, test_size, args.l1, args.l2, args.epochs)
 
     #print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
     #print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
