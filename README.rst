@@ -38,7 +38,7 @@ Will print "best" l1 and l2 parameters, for example `Done! Best accuracy 58.7%, 
 
   $ bottorch tune --l1=2032 --l2=1032
 
-These paramters must be provided for any future actions as well::
+These parameters must be provided for any future actions as well::
 
   $ bottorch predict model.pth Icewave Chomp --l1=2032 --l2=1032
   $ bottorch rank model.pth --l1=2032 --l2=1032
