@@ -82,7 +82,7 @@ def test(dataloader, model, loss_fn):
     return test_loss, correct
 
 def train_iteration(model, botdataset, training_size, test_size, epochs, l1, l2):
-    training_data, _, test_data = torch.utils.data.random_split(botdataset, (training_size, 0, test_size))
+    training_data, test_data = torch.utils.data.random_split(botdataset, (training_size, test_size))
 
     model.to(DEVICE)
 
