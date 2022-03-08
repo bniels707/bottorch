@@ -17,9 +17,6 @@ TRAINING_SPLIT_PERCENTAGE = 0.7
 
 BATCH_SIZE = 64
 
-#Number of times to do the train / test cycle
-EPOCHS = 5
-
 BINARY_THRESHOLD = torch.tensor([0.5])
 
 class BotdataNeuralNetwork(nn.Module):
@@ -84,10 +81,10 @@ def test(dataloader, model, loss_fn):
 
     return test_loss, correct
 
-def train_iteration(botdataset, training_size, test_size, epochs, l1, l2):
+def train_iteration(model, botdataset, training_size, test_size, epochs, l1, l2):
     training_data, _, test_data = torch.utils.data.random_split(botdataset, (training_size, 0, test_size))
 
-    model = BotdataNeuralNetwork(botdataset[0][0].shape[0], l1, l2).to(DEVICE)
+    model.to(DEVICE)
 
     loss_fn = nn.BCELoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=1e-1)
@@ -101,7 +98,7 @@ def train_iteration(botdataset, training_size, test_size, epochs, l1, l2):
         test_loss, test_correct = test(test_dataloader, model, loss_fn)
         print(f"Test Error: \n Accuracy: {(100*(test_correct / len(test_dataloader.dataset))):>0.1f}%, Avg loss: {test_loss / len(test_dataloader):>8f} \n")
 
-    return test_loss, test_correct, model
+    return test_loss, test_correct
 
 def hyper_tune(botdataset, training_size, test_size, step_size, training_epochs):
     current_tuning_step = 0
@@ -116,7 +113,9 @@ def hyper_tune(botdataset, training_size, test_size, step_size, training_epochs)
         for test_l2 in range(botdataset[0][0].shape[0] // 10, botdataset[0][0].shape[0] * 10, step_size):
             print(f"L1: {test_l1}, L2: {test_l2}")
 
-            test_loss, test_correct, _ = train_iteration(botdataset, training_size, test_size, training_epochs, test_l1, test_l2)
+            model = BotdataNeuralNetwork(botdataset[0][0].shape[0], test_l1, test_l2)
+
+            test_loss, test_correct = train_iteration(model, botdataset, training_size, test_size, training_epochs, test_l1, test_l2)
 
             if test_correct > best_correct:
                 best_correct = test_correct
@@ -129,12 +128,10 @@ def hyper_tune(botdataset, training_size, test_size, step_size, training_epochs)
 
     print(f"Done! Best accuracy {(100*(best_correct / test_size)):>0.1f}%, L1: {best_l1}, L2: {best_l2}")
 
-def tune(botdataset, training_size, test_size, l1, l2, training_epochs):
-    test_loss, test_correct, model = train_iteration(botdataset, training_size, test_size, training_epochs, l1, l2)
+def tune(model, botdataset, training_size, test_size, l1, l2, training_epochs):
+    test_loss, test_correct = train_iteration(model, botdataset, training_size, test_size, training_epochs, l1, l2)
 
     print(f"Done! Accuracy {(100*(test_correct / test_size)):>0.1f}%")
-
-    return model
 
 def predict(model, botdata_transform, bot_name1, bot_name2, bot_features):
     #Returns the predicted winner as a name string
@@ -177,11 +174,33 @@ def main():
     )
 
     parser.add_argument(
-        "tuning_action",
+        "action",
         type=str,
-        nargs='?',
-        choices=["hypertune", "tune"],
-        help="the action to perform, hypertune to print tuned L1, L2 model paramters, tune to iteratively tune the model with the given parameters",
+        choices=["hypertune", "tune", "predict"],
+        default="predict",
+        help="the action to perform, hypertune to print tuned L1, L2 model paramters, tune to iteratively tune the model with the given parameters and save to the specified model, predict to make a prediction using the specified model, defaults to predict",
+    )
+
+    parser.add_argument(
+        "model",
+        type=str,
+        nargs="?",
+        default="model.pth",
+        help="model to save or load",
+    )
+
+    parser.add_argument(
+        "competitor1",
+        type=str,
+        nargs="?",
+        help="first competitor for prediction",
+    )
+
+    parser.add_argument(
+        "competitor2",
+        type=str,
+        nargs="?",
+        help="second competitor for prediction",
     )
 
     parser.add_argument(
@@ -202,14 +221,14 @@ def main():
         "--l1",
         type=int,
         default=128,
-        help="the size of the first neural network layer",
+        help="the size of the first neural network layer, required if provided during tune",
     )
 
     parser.add_argument(
         "--l2",
         type=int,
         default=64,
-        help="the size of the second neural network layer",
+        help="the size of the second neural network layer, required if provided during tune",
     )
 
     args = parser.parse_args()
@@ -237,14 +256,22 @@ def main():
     training_size = int(TRAINING_SPLIT_PERCENTAGE * len(botdataset))
     test_size = len(botdataset) - training_size
 
-    if args.tuning_action is not None:
-        if args.tuning_action == 'hypertune':
-            hyper_tune(botdataset, training_size, test_size, args.step_size, args.epochs) #Best accuracy 62.5%, L1: 2332, L2: 1032
-        elif args.tuning_action == 'tune':
-            model = tune(botdataset, training_size, test_size, args.l1, args.l2, args.epochs)
+    if args.action == 'hypertune':
+        hyper_tune(botdataset, training_size, test_size, args.step_size, args.epochs) #Best accuracy 62.5%, L1: 2332, L2: 1032
+    elif args.action == 'tune':
+        model = BotdataNeuralNetwork(botdataset[0][0].shape[0], args.l1, args.l2)
 
-    #print(predict(model, botdata_transform, 'Icewave', 'Chomp', bot_features))
-    #print(predict(model, botdata_transform, 'Chomp', 'Icewave', bot_features))
+        tune(model, botdataset, training_size, test_size, args.l1, args.l2, args.epochs)
+
+        #Save the model
+        torch.save(model.state_dict(), args.model)
+    elif args.action == 'predict':
+        model = BotdataNeuralNetwork(botdataset[0][0].shape[0], args.l1, args.l2)
+        model.load_state_dict(torch.load(args.model))
+
+        print(predict(model, botdata_transform, args.competitor1, args.competitor2, bot_features))
+    else:
+        raise RuntimeError('Unrecognized action')
 
     #predict_rank(model, botdata_transform, bot_features)
 
