@@ -192,6 +192,13 @@ def main():
     )
 
     parser.add_argument(
+        "--step_size",
+        type=int,
+        default=100,
+        help="the step size to use for hyper tuning",
+    )
+
+    parser.add_argument(
         "--l1",
         type=int,
         default=128,
@@ -232,7 +239,7 @@ def main():
 
     if args.tuning_action is not None:
         if args.tuning_action == 'hypertune':
-            hyper_tune(botdataset, training_size, test_size, 100, args.epochs) #Best accuracy 62.5%, L1: 2332, L2: 1032
+            hyper_tune(botdataset, training_size, test_size, args.step_size, args.epochs) #Best accuracy 62.5%, L1: 2332, L2: 1032
         elif args.tuning_action == 'tune':
             model = tune(botdataset, training_size, test_size, 2332, 1032, args.epochs)
 
