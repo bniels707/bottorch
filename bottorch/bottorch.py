@@ -4,7 +4,7 @@ import torch
 
 from torch import nn
 from torch.utils.data import DataLoader
-from bottorch.botdata import BotDataset, get_botdata_features, get_botdata_lambdas, get_competitor_list, get_tensor_transform
+from bottorch.botdata import BotDataset, get_botdata_features, get_botdata_lambdas, get_classification_lambda, get_competitor_list, get_tensor_transform
 
 DATA_PATH = 'BotTorch_Data-Training.csv'
 COMPETITORS_PATH = 'BotTorch_Data-S6-Competitors.csv'
@@ -152,7 +152,7 @@ def predict(model, botdata_transform, bot_name1, bot_name2, bot_features):
 
 def predict_rank(model, botdata_transform, bot_features):
     #Prints the list of competitors ordered by number of wins in a round robin
-    competitor_list = botdata.get_competitor_list(COMPETITORS_PATH)
+    competitor_list = get_competitor_list(COMPETITORS_PATH)
 
     win_accumulator = {}
 
@@ -171,7 +171,7 @@ def predict_rank(model, botdata_transform, bot_features):
         print(idx + 1, ' - ', competitor, win_accumulator[competitor])
 
 def main():
-    bot_features = botdata.get_botdata_features(DATA_PATH)
+    bot_features = get_botdata_features(DATA_PATH)
 
     #Convert the features mapping to lists so we can build vectors from them
     bot_names = list(bot_features.keys())
@@ -184,11 +184,11 @@ def main():
                 bot_weapons.append(weapon)
 
     #Build the vector transforms
-    botname_lambda, weapon_lambda = botdata.get_botdata_lambdas(bot_names, bot_weapons)
-    botdata_transform = botdata.get_tensor_transform(botname_lambda, weapon_lambda)
+    botname_lambda, weapon_lambda = get_botdata_lambdas(bot_names, bot_weapons)
+    botdata_transform = get_tensor_transform(botname_lambda, weapon_lambda)
 
     #Make a dataset
-    botdataset = botdata.BotDataset(DATA_PATH, transform=botdata_transform, target_transform=botdata.get_classification_lambda())
+    botdataset = BotDataset(DATA_PATH, transform=botdata_transform, target_transform=get_classification_lambda())
 
     #Calculate the split sizes
     training_size = int(TRAINING_SPLIT_PERCENTAGE * len(botdataset))
