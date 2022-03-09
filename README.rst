@@ -1,7 +1,7 @@
 Setup
 -----
 
-It is recommended to develop using a `pipenv <https://pipenv.kennethreitz.org/en/latest/>`_.
+It is recommended to develop using a `pipenv <https://pipenv.pypa.io/en/latest/>`_.
 
 A development environment can be set up automatically::
 
