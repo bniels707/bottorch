@@ -46,7 +46,6 @@ class BotdataNeuralNetwork(nn.Module):
         if state_dict is not None:
             self.load_state_dict(state_dict)
 
-
     def forward(self, x):
         logits = self.linear_relu_stack(x)
         return logits
