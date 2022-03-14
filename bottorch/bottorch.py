@@ -159,7 +159,7 @@ def predict(model, botdata_transform, bot_features, bot_name1, bot_name2):
 
 def predict_rank(model, botdata_transform, bot_features):
     #Prints the list of competitors ordered by number of wins in a round robin
-    competitor_list = get_competitor_list(COMPETITORS_PATH)
+    competitor_list = set(get_competitor_list(COMPETITORS_PATH)) #Dedupe just in case
 
     win_accumulator = {}
 
