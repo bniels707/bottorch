@@ -141,7 +141,7 @@ def tune(model, botdataset, training_size, test_size, l1, l2, training_epochs):
 
     print(f"Done! Accuracy {(100*(test_correct / test_size)):>0.1f}%")
 
-def predict(model, botdata_transform, bot_name1, bot_name2, bot_features):
+def predict(model, botdata_transform, bot_features, bot_name1, bot_name2):
     #Returns the predicted winner as a name string
     matchup_tensor = botdata_transform([bot_name1, bot_features[bot_name1][0], bot_features[bot_name1][1], bot_name2, bot_features[bot_name2][0], bot_features[bot_name2][1]])
 
@@ -168,7 +168,7 @@ def predict_rank(model, botdata_transform, bot_features):
     for competitor1 in competitor_list:
         for competitor2 in competitor_list:
             if competitor1 != competitor2:
-                winner = predict(model, botdata_transform, competitor1, competitor2, bot_features)
+                winner = predict(model, botdata_transform, bot_features, competitor1, competitor2)
 
                 win_accumulator[winner] += 1
 
@@ -274,7 +274,7 @@ def main():
     elif args.action == 'predict':
         model = BotdataNeuralNetwork(botdataset[0][0].shape[0], state_dict=torch.load(args.model))
 
-        print(predict(model, botdata_transform, args.competitor1, args.competitor2, bot_features))
+        print(predict(model, botdata_transform, bot_features, args.competitor1, args.competitor2))
     elif args.action == 'rank':
         model = BotdataNeuralNetwork(botdataset[0][0].shape[0], state_dict=torch.load(args.model))
 
