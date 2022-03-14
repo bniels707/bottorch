@@ -175,12 +175,10 @@ def predict_rank(model, botdata_transform, bot_features):
 
     return win_accumulator
 
-def predict_bracket(model, botdata_transform, bot_features, initial_round_size=32):
+def predict_bracket(model, botdata_transform, bot_features):
     #Prints a list of predicted bracket winners, assuming the competitor list
     #is ordered from highest ranked, to lowest ranked
-    competitor_list = get_competitor_list(BRACKET_PATH)
-
-    bracket_qualifiers = competitor_list[:initial_round_size]
+    bracket_qualifiers = get_competitor_list(BRACKET_PATH)
 
     round_count = 1
     round_competitors = bracket_qualifiers
@@ -193,8 +191,8 @@ def predict_bracket(model, botdata_transform, bot_features, initial_round_size=3
             competitor1 = round_competitors[fight_index]
             competitor2 = round_competitors[-(fight_index + 1)]
 
-            competitor1_rank = competitor_list.index(competitor1) + 1
-            competitor2_rank = competitor_list.index(competitor2) + 1
+            competitor1_rank = bracket_qualifiers.index(competitor1) + 1
+            competitor2_rank = bracket_qualifiers.index(competitor2) + 1
 
             winner = predict(model, botdata_transform, bot_features, competitor1, competitor2)
 
@@ -205,8 +203,6 @@ def predict_bracket(model, botdata_transform, bot_features, initial_round_size=3
         round_competitors = next_round_competitors
         next_round_competitors = []
         round_count += 1
-
-    #print(bracket_qualifiers)
 
 def main():
     parser = argparse.ArgumentParser(
