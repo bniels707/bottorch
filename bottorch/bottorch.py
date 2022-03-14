@@ -9,6 +9,7 @@ from bottorch.botdata import BotDataset, get_botdata_features, get_botdata_lambd
 
 DATA_PATH = 'BotTorch_Data-Training.csv'
 COMPETITORS_PATH = 'BotTorch_Data-S6-Competitors.csv'
+BRACKET_PATH = 'BotTorch_Data-S6-Bracket.csv'
 
 DEVICE = "cpu"
 
@@ -174,6 +175,39 @@ def predict_rank(model, botdata_transform, bot_features):
 
     return win_accumulator
 
+def predict_bracket(model, botdata_transform, bot_features, initial_round_size=32):
+    #Prints a list of predicted bracket winners, assuming the competitor list
+    #is ordered from highest ranked, to lowest ranked
+    competitor_list = get_competitor_list(BRACKET_PATH)
+
+    bracket_qualifiers = competitor_list[:initial_round_size]
+
+    round_count = 1
+    round_competitors = bracket_qualifiers
+    next_round_competitors = []
+
+    while len(round_competitors) >= 2:
+        print(f'Round {round_count}')
+
+        for fight_index in range(0, len(round_competitors) // 2):
+            competitor1 = round_competitors[fight_index]
+            competitor2 = round_competitors[-(fight_index + 1)]
+
+            competitor1_rank = competitor_list.index(competitor1) + 1
+            competitor2_rank = competitor_list.index(competitor2) + 1
+
+            winner = predict(model, botdata_transform, bot_features, competitor1, competitor2)
+
+            print(f'Fight {fight_index + 1} - #{competitor1_rank} {competitor1} vs #{competitor2_rank} {competitor2} - Winner {winner}')
+
+            next_round_competitors.append(winner)
+
+        round_competitors = next_round_competitors
+        next_round_competitors = []
+        round_count += 1
+
+    #print(bracket_qualifiers)
+
 def main():
     parser = argparse.ArgumentParser(
         description="Crude fighting robot bracketology using machine learning."
@@ -182,9 +216,9 @@ def main():
     parser.add_argument(
         "action",
         type=str,
-        choices=["hypertune", "tune", "predict", "rank"],
+        choices=["hypertune", "tune", "predict", "rank", "bracket"],
         default="predict",
-        help="the action to perform, hypertune to print tuned L1, L2 model paramters, tune to iteratively tune the model with the given parameters and save to the specified model, predict to make a prediction using the specified model, rank uses the model to order competitors based on predicted wins in a round robin, defaults to predict",
+        help="the action to perform, hypertune to print tuned L1, L2 model paramters, tune to iteratively tune the model with the given parameters and save to the specified model, predict to make a prediction using the specified model, rank uses the model to order competitors based on predicted wins in a round robin, bracket takes the competitor list as ranked and predicts a bracket, defaults to predict",
     )
 
     parser.add_argument(
@@ -283,6 +317,10 @@ def main():
         #Print sorted by win
         for idx, competitor in enumerate(sorted(win_accumulator, key=win_accumulator.get, reverse=True)):
             print(idx + 1, ' - ', competitor, win_accumulator[competitor])
+    elif args.action == 'bracket':
+        model = BotdataNeuralNetwork(botdataset[0][0].shape[0], state_dict=torch.load(args.model))
+
+        predict_bracket(model, botdata_transform, bot_features)
     else:
         raise RuntimeError('Unrecognized action')
 

@@ -30,6 +30,10 @@ To make a ranking of all competitors::
 
   $ bottorch rank model.pth
 
+You can also create a CSV with each line containing a competitor, seeded from first to last, saved as `BotTorch_Data-S6-Bracket.csv`, and simulate a single elimination bracket::
+
+  $ bottorch bracket model.pth
+
 Limited "advanced" tuning parameters are available. `--l1` and `--l2` specify the sizes of the first two layers of the neural network. Their "ideal" size can be determined with hypertuning. Hypertuning also uses a configurable `--step_size` which determines the step size used for parameter optimization, larger step sizes are faster. There is also `--epochs` which can be used for number of tuning epochs run at each step. More epochs takes more time. For example::
 
   $ bottorch hypertune --step_size=1000 --epochs=5
