@@ -164,9 +164,7 @@ def predict_rank(model, botdata_transform, bot_features):
 
                 win_accumulator[winner] += 1
 
-    #Print sorted by win
-    for idx, competitor in enumerate(sorted(win_accumulator, key=win_accumulator.get, reverse=True)):
-        print(idx + 1, ' - ', competitor, win_accumulator[competitor])
+    return win_accumulator
 
 def main():
     parser = argparse.ArgumentParser(
@@ -274,7 +272,11 @@ def main():
         model = BotdataNeuralNetwork(botdataset[0][0].shape[0], args.l1, args.l2)
         model.load_state_dict(torch.load(args.model))
 
-        predict_rank(model, botdata_transform, bot_features)
+        win_accumulator = predict_rank(model, botdata_transform, bot_features)
+
+        #Print sorted by win
+        for idx, competitor in enumerate(sorted(win_accumulator, key=win_accumulator.get, reverse=True)):
+            print(idx + 1, ' - ', competitor, win_accumulator[competitor])
     else:
         raise RuntimeError('Unrecognized action')
 
