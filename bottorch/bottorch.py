@@ -20,14 +20,19 @@ BATCH_SIZE = 64
 BINARY_THRESHOLD = torch.tensor([0.5])
 
 class BotdataNeuralNetwork(nn.Module):
-    def __init__(self, botdata_tensor_size, l1_size=None, l2_size=None):
+    def __init__(self, botdata_tensor_size, l1_size=None, l2_size=None, state_dict=None):
         super(BotdataNeuralNetwork, self).__init__()
 
-        if l1_size is None:
-            l1_size = botdata_tensor_size // 2
+        if state_dict is None:
+            if l1_size is None:
+                l1_size = botdata_tensor_size // 2
 
-        if l2_size is None:
-            l2_size = l1_size // 2
+            if l2_size is None:
+                l2_size = l1_size // 2
+        else:
+            botdata_tensor_size = state_dict['linear_relu_stack.0.weight'].size()[1]
+            l1_size = state_dict['linear_relu_stack.0.weight'].size()[0]
+            l2_size = state_dict['linear_relu_stack.2.weight'].size()[0]
 
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(botdata_tensor_size, l1_size),
@@ -36,7 +41,11 @@ class BotdataNeuralNetwork(nn.Module):
             nn.ReLU(),
             nn.Linear(l2_size, 1),
             nn.Sigmoid()
-        )
+            )
+
+        if state_dict is not None:
+            self.load_state_dict(state_dict)
+
 
     def forward(self, x):
         logits = self.linear_relu_stack(x)
@@ -264,13 +273,11 @@ def main():
         #Save the model
         torch.save(model.state_dict(), args.model)
     elif args.action == 'predict':
-        model = BotdataNeuralNetwork(botdataset[0][0].shape[0], args.l1, args.l2)
-        model.load_state_dict(torch.load(args.model))
+        model = BotdataNeuralNetwork(botdataset[0][0].shape[0], state_dict=torch.load(args.model))
 
         print(predict(model, botdata_transform, args.competitor1, args.competitor2, bot_features))
     elif args.action == 'rank':
-        model = BotdataNeuralNetwork(botdataset[0][0].shape[0], args.l1, args.l2)
-        model.load_state_dict(torch.load(args.model))
+        model = BotdataNeuralNetwork(botdataset[0][0].shape[0], state_dict=torch.load(args.model))
 
         win_accumulator = predict_rank(model, botdata_transform, bot_features)
 
