@@ -26,13 +26,13 @@ To make a prediction after a model has been created (used `model.pth` by default
 
   $ bottorch predict Icewave Chomp
 
-To make a ranking of all competitors::
+To make a ranking of all competitors, assuming competitors are saved in `competitors.csv` with one competitor name per line::
 
-  $ bottorch rank
+  $ bottorch rank --competitors competitors.csv
 
-You can also create a CSV with each line containing a competitor, seeded from first to last, saved as `BotTorch_Data-S6-Bracket.csv`, and simulate a single elimination bracket::
+Assuming the competitors file is in order of first seed to last seed, you can simulate a single elimination bracket::
 
-  $ bottorch bracket
+  $ bottorch bracket --competitors competitors.csv
 
 Limited "advanced" tuning parameters are available. `--l1` and `--l2` specify the sizes of the first two layers of the neural network. Their "ideal" size can be determined with hypertuning. Hypertuning also uses a configurable `--step_size` which determines the step size used for parameter optimization, larger step sizes are faster. There is also `--epochs` which can be used for number of tuning epochs run at each step. More epochs takes more time. For example::
 

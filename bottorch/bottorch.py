@@ -8,8 +8,6 @@ from torch.utils.data import DataLoader
 from bottorch.botdata import BotDataset, get_botdata_features, get_botdata_lambdas, get_classification_lambda, get_competitor_list, get_tensor_transform
 
 DATA_PATH = 'BotTorch_Data-Training.csv'
-COMPETITORS_PATH = 'BotTorch_Data-S6-Competitors.csv'
-BRACKET_PATH = 'BotTorch_Data-S6-Bracket.csv'
 
 DEVICE = "cpu"
 
@@ -157,9 +155,9 @@ def predict(model, botdata_transform, bot_features, bot_name1, bot_name2):
 
     return bot_name2
 
-def predict_rank(model, botdata_transform, bot_features):
+def predict_rank(model, botdata_transform, bot_features, competitors_path):
     #Prints the list of competitors ordered by number of wins in a round robin
-    competitor_list = set(get_competitor_list(COMPETITORS_PATH)) #Dedupe just in case
+    competitor_list = set(get_competitor_list(competitors_path)) #Dedupe just in case
 
     win_accumulator = {}
 
@@ -175,10 +173,10 @@ def predict_rank(model, botdata_transform, bot_features):
 
     return win_accumulator
 
-def predict_bracket(model, botdata_transform, bot_features):
+def predict_bracket(model, botdata_transform, bot_features, competitors_path):
     #Prints a list of predicted bracket winners, assuming the competitor list
     #is ordered from highest ranked, to lowest ranked
-    bracket_qualifiers = get_competitor_list(BRACKET_PATH)
+    bracket_qualifiers = get_competitor_list(competitors_path)
 
     round_count = 1
     round_competitors = bracket_qualifiers
@@ -229,6 +227,13 @@ def main():
         type=str,
         nargs="?",
         help="second competitor for prediction",
+    )
+
+    parser.add_argument(
+        "--competitors",
+        type=str,
+        nargs="?",
+        help="CSV of competitors for ranking or bracket, 1 competitor name per line",
     )
 
     parser.add_argument(
@@ -308,7 +313,7 @@ def main():
     elif args.action == 'rank':
         model = BotdataNeuralNetwork(botdataset[0][0].shape[0], state_dict=torch.load(args.model))
 
-        win_accumulator = predict_rank(model, botdata_transform, bot_features)
+        win_accumulator = predict_rank(model, botdata_transform, bot_features, args.competitors)
 
         #Print sorted by win
         for idx, competitor in enumerate(sorted(win_accumulator, key=win_accumulator.get, reverse=True)):
@@ -316,7 +321,7 @@ def main():
     elif args.action == 'bracket':
         model = BotdataNeuralNetwork(botdataset[0][0].shape[0], state_dict=torch.load(args.model))
 
-        predict_bracket(model, botdata_transform, bot_features)
+        predict_bracket(model, botdata_transform, bot_features, args.competitors)
     else:
         raise RuntimeError('Unrecognized action')
 
