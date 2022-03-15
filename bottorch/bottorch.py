@@ -218,14 +218,6 @@ def main():
     )
 
     parser.add_argument(
-        "model",
-        type=str,
-        nargs="?",
-        default="model.pth",
-        help="model to save or load",
-    )
-
-    parser.add_argument(
         "competitor1",
         type=str,
         nargs="?",
@@ -237,6 +229,14 @@ def main():
         type=str,
         nargs="?",
         help="second competitor for prediction",
+    )
+
+    parser.add_argument(
+        "--model",
+        type=str,
+        nargs="?",
+        default="model.pth",
+        help="model to save or load",
     )
 
     parser.add_argument(
