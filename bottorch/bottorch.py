@@ -7,8 +7,6 @@ from torch import nn
 from torch.utils.data import DataLoader
 from bottorch.botdata import BotDataset, get_botdata_features, get_botdata_lambdas, get_classification_lambda, get_competitor_list, get_tensor_transform
 
-DATA_PATH = 'BotTorch_Data-Training.csv'
-
 DEVICE = "cpu"
 
 #Percentage of samples used for training
@@ -230,18 +228,10 @@ def main():
     )
 
     parser.add_argument(
-        "--competitors",
+        "--samples",
         type=str,
         nargs="?",
-        help="CSV of competitors for ranking or bracket, 1 competitor name per line",
-    )
-
-    parser.add_argument(
-        "--model",
-        type=str,
-        nargs="?",
-        default="model.pth",
-        help="model to save or load",
+        help="sample data to use for tuning, CSV, each row consisting of name1, weapon1, weapon2, name2, weapon1, weapon2, winner",
     )
 
     parser.add_argument(
@@ -272,9 +262,25 @@ def main():
         help="the size of the second neural network layer, required if provided during tune",
     )
 
+    parser.add_argument(
+        "--model",
+        type=str,
+        nargs="?",
+        default="model.pth",
+        help="model to save or load",
+    )
+
+    parser.add_argument(
+        "--competitors",
+        type=str,
+        nargs="?",
+        help="CSV of competitors for ranking or bracket, 1 competitor name per line",
+    )
+
     args = parser.parse_args()
 
-    bot_features = get_botdata_features(DATA_PATH)
+    #Make a dataset
+    bot_features = get_botdata_features(args.samples)
 
     #Convert the features mapping to lists so we can build vectors from them
     bot_names = list(bot_features.keys())
@@ -290,8 +296,7 @@ def main():
     botname_lambda, weapon_lambda = get_botdata_lambdas(bot_names, bot_weapons)
     botdata_transform = get_tensor_transform(botname_lambda, weapon_lambda)
 
-    #Make a dataset
-    botdataset = BotDataset(DATA_PATH, transform=botdata_transform, target_transform=get_classification_lambda())
+    botdataset = BotDataset(args.samples, transform=botdata_transform, target_transform=get_classification_lambda())
 
     #Calculate the split sizes
     training_size = int(TRAINING_SPLIT_PERCENTAGE * len(botdataset))
